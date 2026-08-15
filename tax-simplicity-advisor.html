@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tax-Simplicity Advisor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#152438;
+    --ink-soft:#2c3e54;
+    --paper:#FBF4E4;
+    --paper-line:#e6d9b8;
+    --gold:#D69A2D;
+    --gold-deep:#B37A1A;
+    --rust:#B3462C;
+    --sage:#5C7A5E;
+    --sage-bg:#e7ede4;
+    --shadow: 0 1px 0 rgba(21,36,56,0.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    color:var(--ink);
+    font-family:'IBM Plex Sans',sans-serif;
+    min-height:100vh;
+    padding:0 0 64px;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:0 20px;}
+
+  /* Header */
+  header{
+    padding:36px 20px 40px;
+    text-align:left;
+    color:var(--paper);
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin:0 0 10px;
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:clamp(28px,7vw,38px);
+    line-height:1.08;
+    margin:0 0 12px;
+    letter-spacing:-0.01em;
+  }
+  header p{
+    font-size:15px;
+    line-height:1.55;
+    color:#c9d2dc;
+    margin:0;
+    max-width:46ch;
+  }
+
+  /* Main card - the passbook */
+  main{
+    background:var(--paper);
+    border-radius:14px 14px 0 0;
+    min-height:60vh;
+    padding:28px 20px 40px;
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.18);
+  }
+
+  .field-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin:0 0 8px;
+    display:block;
+  }
+  textarea{
+    width:100%;
+    min-height:96px;
+    resize:vertical;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    padding:14px 16px;
+    border:1.5px solid var(--paper-line);
+    border-radius:8px;
+    background:#fffdf8;
+    color:var(--ink);
+    outline:none;
+    transition:border-color 0.15s ease;
+  }
+  textarea:focus{border-color:var(--gold-deep);}
+  textarea::placeholder{color:#a89a78;}
+
+  .examples{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin:10px 0 22px;
+  }
+  .example-chip{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    padding:6px 12px;
+    border:1px solid var(--paper-line);
+    border-radius:20px;
+    background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:all 0.15s ease;
+  }
+  .example-chip:hover{border-color:var(--gold-deep);color:var(--gold-deep);}
+
+  .analyze-btn{
+    width:100%;
+    padding:15px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-weight:600;
+    font-size:15px;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    letter-spacing:0.01em;
+    transition:background 0.15s ease, transform 0.1s ease;
+  }
+  .analyze-btn:hover{background:var(--ink-soft);}
+  .analyze-btn:active{transform:scale(0.99);}
+  .analyze-btn:disabled{background:#9aa5b1;cursor:not-allowed;}
+
+  .error-box{
+    margin-top:14px;
+    padding:12px 14px;
+    background:#f6e6e0;
+    border:1px solid var(--rust);
+    border-radius:8px;
+    color:var(--rust);
+    font-size:13.5px;
+    display:none;
+  }
+
+  /* Results - passbook ledger */
+  #results{
+    margin-top:32px;
+    display:none;
+  }
+  .passbook{
+    background:#fffdf8;
+    border:1.5px solid var(--paper-line);
+    border-radius:12px;
+    overflow:hidden;
+    position:relative;
+  }
+  .passbook-head{
+    padding:20px 20px 16px;
+    border-bottom:1px dashed var(--paper-line);
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:12px;
+  }
+  .passbook-head h2{
+    font-family:'Fraunces',serif;
+    font-size:19px;
+    font-weight:600;
+    margin:0 0 4px;
+  }
+  .passbook-head .sub{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .stamp{
+    flex-shrink:0;
+    width:64px;height:64px;
+    border-radius:50%;
+    border:2.5px solid var(--rust);
+    color:var(--rust);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:9px;
+    font-weight:600;
+    text-align:center;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    transform:rotate(-8deg) scale(0);
+    opacity:0;
+    line-height:1.2;
+    animation: stampIn 0.4s cubic-bezier(.2,1.4,.4,1) 0.15s forwards;
+  }
+  @keyframes stampIn{
+    to{ transform:rotate(-8deg) scale(1); opacity:0.85; }
+  }
+
+  .entry{
+    padding:18px 20px;
+    border-bottom:1px dashed var(--paper-line);
+  }
+  .entry:last-child{border-bottom:none;}
+  .entry-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin:0 0 6px;
+  }
+  .entry-value{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:22px;
+    font-weight:600;
+    color:var(--ink);
+    margin:0 0 6px;
+  }
+  .entry-note{
+    font-size:13.5px;
+    line-height:1.5;
+    color:var(--ink-soft);
+    margin:0;
+  }
+
+  .benefits-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+  }
+  .benefits-list li{
+    display:flex;
+    gap:10px;
+    padding:12px 0;
+    border-bottom:1px solid #f0e6cc;
+    align-items:flex-start;
+  }
+  .benefits-list li:last-child{border-bottom:none;}
+  .benefit-dot{
+    flex-shrink:0;
+    width:8px;height:8px;
+    border-radius:50%;
+    background:var(--sage);
+    margin-top:6px;
+  }
+  .benefit-name{font-weight:600;font-size:14.5px;margin:0 0 2px;}
+  .benefit-desc{font-size:13px;color:var(--ink-soft);margin:0;line-height:1.45;}
+
+  .disclaimer{
+    padding:14px 20px;
+    background:var(--sage-bg);
+    font-size:12px;
+    line-height:1.5;
+    color:#3c4f3e;
+  }
+
+  .loading{
+    display:none;
+    align-items:center;
+    gap:10px;
+    padding:16px 0 0;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+  .dot-pulse{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--gold-deep);
+    animation:pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:0.3;} 50%{opacity:1;}
+  }
+
+  footer{
+    text-align:center;
+    padding:20px 20px 0;
+    font-size:11.5px;
+    color:#8a96a3;
+    font-family:'IBM Plex Mono',monospace;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <p class="eyebrow">PS-12 · Craft-n-Code 2026</p>
+    <h1>Tax-Simplicity Advisor</h1>
+    <p>Describe your business in your own words. We'll tell you what applies to you — plainly, and what it unlocks.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <label class="field-label" for="desc">Tell us about your business</label>
+    <textarea id="desc" placeholder="e.g. I sell vegetables from a cart in Jaipur, I make about ₹15,000 a month, it's just me."></textarea>
+
+    <div class="examples">
+      <button class="example-chip" data-ex="I run a small tailoring shop from home in Jaipur. I stitch clothes for neighbours, no employees, I earn around ₹22,000 a month.">🧵 Home tailor</button>
+      <button class="example-chip" data-ex="I sell vegetables from a handcart near the market in Jaipur. I make about ₹15,000 a month, just me.">🥬 Vegetable cart</button>
+      <button class="example-chip" data-ex="I run a small welding and metal fabrication workshop with 2 workers. We make around ₹9 lakh a year.">🔧 Welding workshop</button>
+    </div>
+
+    <button class="analyze-btn" id="analyzeBtn">Analyze my business</button>
+    <div class="loading" id="loading"><span class="dot-pulse"></span> Reading your description…</div>
+    <div class="error-box" id="errorBox"></div>
+
+    <div id="results">
+      <div class="passbook">
+        <div class="passbook-head">
+          <div>
+            <h2 id="resBusinessType">—</h2>
+            <div class="sub" id="resMeta">—</div>
+          </div>
+          <div class="stamp" id="resStamp">VERIFIED<br>ESTIMATE</div>
+        </div>
+
+        <div class="entry">
+          <p class="entry-label">Registration category</p>
+          <p class="entry-value" id="resBracket">—</p>
+          <p class="entry-note" id="resBracketNote">—</p>
+        </div>
+
+        <div class="entry">
+          <p class="entry-label">Estimated annual dues</p>
+          <p class="entry-value" id="resDues">—</p>
+          <p class="entry-note" id="resDuesNote">—</p>
+        </div>
+
+        <div class="entry">
+          <p class="entry-label">You could unlock</p>
+          <ul class="benefits-list" id="resBenefits"></ul>
+        </div>
+
+        <div class="disclaimer">
+          These are simplified, indicative estimates based on general Indian tax rules and may not reflect your exact state, category, or recent rate changes. Confirm with a local CA or Udyam/GST helpdesk before registering.
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>Built for Craft-n-Code 2026 · Open Innovation · PS-12</footer>
+
+<script>
+const RULES = {
+  // annual income thresholds in INR
+  gstThreshold: 4000000,       // ₹40L goods (general category states)
+  gstThresholdServices: 2000000, // ₹20L services
+  presumptive44ADLimit: 20000000, // ₹2Cr turnover, Sec 44AD presumptive scheme
+  msme: {
+    micro: 10000000,  // investment < ₹1Cr (approx proxy via turnover for demo)
+    small: 100000000  // turnover < ₹5Cr band, simplified for demo
+  }
+};
+
+function classify(facts) {
+  const annual = facts.annualIncomeINR || 0;
+  const isServices = /service|tailor|repair|salon|consult|freelance/i.test(facts.businessType || "");
+  const gstLimit = isServices ? RULES.gstThresholdServices : RULES.gstThreshold;
+
+  let bracket, bracketNote, dues, duesNote;
+
+  if (annual < 250000) {
+    bracket = "Below taxable income";
+    bracketNote = "Your estimated annual income is below the basic exemption limit. No income tax is likely due, and GST registration is not required at this scale.";
+    dues = "₹0";
+    duesNote = "No income tax liability estimated at this income level.";
+  } else if (annual < gstLimit) {
+    bracket = "Presumptive Taxation (Sec 44AD/44ADA)";
+    bracketNote = `Below the GST registration threshold for your category (₹${(gstLimit/100000).toFixed(0)}L/yr), so GST registration is optional. You can still declare income simply under presumptive taxation without full bookkeeping.`;
+    const taxable = Math.max(0, annual * (isServices ? 0.5 : 0.08) - 250000);
+    dues = "≈ ₹" + Math.round(taxable * 0.05).toLocaleString('en-IN');
+    duesNote = "Rough estimate assuming presumptive income at 8% (goods) or 50% (services) of turnover, taxed at the lowest slab after basic exemption.";
+  } else if (annual < RULES.presumptive44ADLimit) {
+    bracket = "GST Registered + Presumptive Taxation";
+    bracketNote = `Your turnover crosses the ₹${(gstLimit/100000).toFixed(0)}L GST threshold for your category, so GST registration is required. You likely still qualify for presumptive taxation under Sec 44AD since turnover is under ₹2Cr.`;
+    const taxable = Math.max(0, annual * (isServices ? 0.5 : 0.08) - 250000);
+    dues = "≈ ₹" + Math.round(taxable * 0.1 + annual * 0.01).toLocaleString('en-IN');
+    duesNote = "Includes rough income tax under presumptive scheme plus an approximate effective GST outflow after input credits.";
+  } else {
+    bracket = "Regular GST + Full Tax Filing";
+    bracketNote = "At this turnover you're above the presumptive taxation ceiling. Regular books of accounts, GST filing, and standard income tax slabs apply.";
+    dues = "Consult a CA";
+    duesNote = "Turnover this size needs a proper accountant — estimates here would be too rough to be useful.";
+  }
+
+  const benefits = [];
+  benefits.push({
+    name: "Udyam Registration",
+    desc: "Free MSME registration — unlocks priority sector lending, collateral-free loans, and delayed-payment protection from buyers."
+  });
+  if (annual <= 500000) {
+    benefits.push({
+      name: "MUDRA Loan — Shishu/Kishor",
+      desc: "Collateral-free loans up to ₹5L for very small or growing businesses, via any bank or NBFC-MFI."
+    });
+  } else {
+    benefits.push({
+      name: "MUDRA Loan — Tarun",
+      desc: "Collateral-free loans up to ₹10L for established small businesses looking to expand."
+    });
+  }
+  if (facts.employees && facts.employees > 0) {
+    benefits.push({
+      name: "PMEGP Subsidy",
+      desc: "Capital subsidy (15–35%) for setting up or expanding a small manufacturing or service unit that creates employment."
+    });
+  }
+  benefits.push({
+    name: "PM SVANidhi / State Vendor Schemes",
+    desc: "If you're a street/cart vendor, small working-capital loans are available with no collateral, repayable in easy instalments."
+  });
+
+  return { bracket, bracketNote, dues, duesNote, benefits };
+}
+
+async function parseDescription(text) {
+  const resp = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "claude-sonnet-4-6",
+      max_tokens: 1000,
+      system: "You extract structured facts from a plain-language description of a small Indian business. Respond ONLY with raw JSON, no markdown fences, no preamble. Schema: {\"businessType\": string, \"location\": string, \"monthlyIncomeINR\": number, \"annualIncomeINR\": number, \"employees\": number}. If monthly income is given, compute annual as monthly*12. If only annual is given, compute monthly as annual/12. If employees isn't mentioned, use 0. Make reasonable assumptions if some info is vague, but keep numbers realistic.",
+      messages: [{ role: "user", content: text }]
+    })
+  });
+  const data = await resp.json();
+  const textBlock = data.content?.find(b => b.type === "text");
+  if (!textBlock) throw new Error("No response from model");
+  const cleaned = textBlock.text.replace(/```json|```/g, "").trim();
+  return JSON.parse(cleaned);
+}
+
+const btn = document.getElementById('analyzeBtn');
+const descEl = document.getElementById('desc');
+const loadingEl = document.getElementById('loading');
+const errorEl = document.getElementById('errorBox');
+const resultsEl = document.getElementById('results');
+
+document.querySelectorAll('.example-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    descEl.value = chip.dataset.ex;
+    descEl.focus();
+  });
+});
+
+btn.addEventListener('click', async () => {
+  const text = descEl.value.trim();
+  errorEl.style.display = 'none';
+  resultsEl.style.display = 'none';
+  if (!text) {
+    errorEl.textContent = "Please describe your business first.";
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  loadingEl.style.display = 'flex';
+
+  try {
+    const facts = await parseDescription(text);
+    const result = classify(facts);
+
+    document.getElementById('resBusinessType').textContent = facts.businessType || "Your business";
+    document.getElementById('resMeta').textContent =
+      `${facts.location || 'India'} · ~₹${Number(facts.monthlyIncomeINR || 0).toLocaleString('en-IN')}/mo · ${facts.employees || 0} employee(s)`;
+    document.getElementById('resBracket').textContent = result.bracket;
+    document.getElementById('resBracketNote').textContent = result.bracketNote;
+    document.getElementById('resDues').textContent = result.dues;
+    document.getElementById('resDuesNote').textContent = result.duesNote;
+
+    const benefitsEl = document.getElementById('resBenefits');
+    benefitsEl.innerHTML = '';
+    result.benefits.forEach(b => {
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="benefit-dot"></span><div><p class="benefit-name">${b.name}</p><p class="benefit-desc">${b.desc}</p></div>`;
+      benefitsEl.appendChild(li);
+    });
+
+    // restart stamp animation
+    const stamp = document.getElementById('resStamp');
+    stamp.style.animation = 'none';
+    void stamp.offsetWidth;
+    stamp.style.animation = null;
+
+    resultsEl.style.display = 'block';
+    resultsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch (err) {
+    console.error(err);
+    errorEl.textContent = "Couldn't read that description — try rephrasing with a rough monthly or yearly income mentioned.";
+    errorEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    loadingEl.style.display = 'none';
+  }
+});
+</script>
+
+</body>
+</html>
