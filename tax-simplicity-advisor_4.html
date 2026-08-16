@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tax-Simplicity Advisor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#152438;
+    --ink-soft:#2c3e54;
+    --paper:#FBF4E4;
+    --paper-line:#e6d9b8;
+    --gold:#D69A2D;
+    --gold-deep:#B37A1A;
+    --rust:#B3462C;
+    --sage:#5C7A5E;
+    --sage-bg:#e7ede4;
+    --shadow: 0 1px 0 rgba(21,36,56,0.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    color:var(--ink);
+    font-family:'IBM Plex Sans',sans-serif;
+    min-height:100vh;
+    padding:0 0 64px;
+  }
+  .wrap{max-width:640px;margin:0 auto;padding:0 20px;}
+
+  /* Header */
+  header{
+    padding:36px 20px 40px;
+    text-align:left;
+    color:var(--paper);
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin:0 0 10px;
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:clamp(28px,7vw,38px);
+    line-height:1.08;
+    margin:0 0 12px;
+    letter-spacing:-0.01em;
+  }
+  header p{
+    font-size:15px;
+    line-height:1.55;
+    color:#c9d2dc;
+    margin:0;
+    max-width:46ch;
+  }
+
+  /* Main card - the passbook */
+  main{
+    background:var(--paper);
+    border-radius:14px 14px 0 0;
+    min-height:60vh;
+    padding:28px 20px 40px;
+    box-shadow: 0 -8px 24px rgba(0,0,0,0.18);
+  }
+
+  .field-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin:0 0 8px;
+    display:block;
+  }
+  textarea{
+    width:100%;
+    min-height:96px;
+    resize:vertical;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    padding:14px 16px;
+    border:1.5px solid var(--paper-line);
+    border-radius:8px;
+    background:#fffdf8;
+    color:var(--ink);
+    outline:none;
+    transition:border-color 0.15s ease;
+  }
+  textarea:focus{border-color:var(--gold-deep);}
+  textarea::placeholder{color:#a89a78;}
+
+  .examples{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin:10px 0 22px;
+  }
+  .example-chip{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    padding:6px 12px;
+    border:1px solid var(--paper-line);
+    border-radius:20px;
+    background:transparent;
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:all 0.15s ease;
+  }
+  .example-chip:hover{border-color:var(--gold-deep);color:var(--gold-deep);}
+
+  .analyze-btn{
+    width:100%;
+    padding:15px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-weight:600;
+    font-size:15px;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    letter-spacing:0.01em;
+    transition:background 0.15s ease, transform 0.1s ease;
+  }
+  .analyze-btn:hover{background:var(--ink-soft);}
+  .analyze-btn:active{transform:scale(0.99);}
+  .analyze-btn:disabled{background:#9aa5b1;cursor:not-allowed;}
+
+  .ai-status-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin:0 0 10px;
+  }
+  .ai-status{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .ai-status-dot{
+    width:7px;height:7px;border-radius:50%;
+    background:#9aa5b1;
+    flex-shrink:0;
+  }
+  .ai-status-dot.live{background:var(--sage);}
+  .ai-status-dot.offline{background:var(--rust);}
+  .settings-toggle{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    background:none;
+    border:none;
+    color:var(--gold-deep);
+    cursor:pointer;
+    text-decoration:underline dashed;
+    text-underline-offset:3px;
+    padding:0;
+  }
+  .settings-toggle:hover{color:var(--rust);}
+  .api-key-panel{
+    display:none;
+    margin:0 0 16px;
+    padding:14px 16px;
+    background:#f3ecd8;
+    border:1px dashed var(--paper-line);
+    border-radius:8px;
+  }
+  .api-key-panel.open{display:block;}
+  .api-key-panel p{
+    font-size:12px;
+    line-height:1.5;
+    color:var(--ink-soft);
+    margin:0 0 10px;
+  }
+  .api-key-panel a{color:var(--gold-deep);}
+  .api-key-row{
+    display:flex;
+    gap:8px;
+  }
+  #apiKeyInput{
+    flex:1;
+    padding:9px 12px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    border:1.5px solid var(--paper-line);
+    border-radius:6px;
+    background:#fffdf8;
+    color:var(--ink);
+    outline:none;
+  }
+  #apiKeyInput:focus{border-color:var(--gold-deep);}
+  .save-key-btn{
+    padding:9px 14px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-weight:600;
+    font-size:12.5px;
+    background:var(--ink);
+    color:var(--paper);
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .save-key-btn:hover{background:var(--ink-soft);}
+  .key-saved-note{
+    display:none;
+    margin-top:8px;
+    font-size:11.5px;
+    color:#3c4f3e;
+  }
+  .key-saved-note.show{display:block;}
+
+  .error-box{
+    margin-top:14px;
+    padding:12px 14px;
+    background:#f6e6e0;
+    border:1px solid var(--rust);
+    border-radius:8px;
+    color:var(--rust);
+    font-size:13.5px;
+    display:none;
+  }
+
+  /* Results - passbook ledger */
+  #results{
+    margin-top:32px;
+    display:none;
+  }
+  .passbook{
+    background:#fffdf8;
+    border:1.5px solid var(--paper-line);
+    border-radius:12px;
+    overflow:hidden;
+    position:relative;
+  }
+  .passbook-head{
+    padding:20px 20px 16px;
+    border-bottom:1px dashed var(--paper-line);
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:12px;
+  }
+  .passbook-head h2{
+    font-family:'Fraunces',serif;
+    font-size:19px;
+    font-weight:600;
+    margin:0 0 4px;
+  }
+  .passbook-head .sub{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+  .stamp{
+    flex-shrink:0;
+    width:64px;height:64px;
+    border-radius:50%;
+    border:2.5px solid var(--rust);
+    color:var(--rust);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:9px;
+    font-weight:600;
+    text-align:center;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    transform:rotate(-8deg) scale(0);
+    opacity:0;
+    line-height:1.2;
+    animation: stampIn 0.4s cubic-bezier(.2,1.4,.4,1) 0.15s forwards;
+  }
+  @keyframes stampIn{
+    to{ transform:rotate(-8deg) scale(1); opacity:0.85; }
+  }
+
+  .entry{
+    padding:18px 20px;
+    border-bottom:1px dashed var(--paper-line);
+  }
+  .entry:last-child{border-bottom:none;}
+  .entry-label{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    margin:0 0 6px;
+  }
+  .entry-value{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:22px;
+    font-weight:600;
+    color:var(--ink);
+    margin:0 0 6px;
+  }
+  .entry-note{
+    font-size:13.5px;
+    line-height:1.5;
+    color:var(--ink-soft);
+    margin:0;
+  }
+
+  .why-toggle{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    margin-top:8px;
+    background:none;
+    border:none;
+    padding:0;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11.5px;
+    color:var(--gold-deep);
+    cursor:pointer;
+    text-decoration:underline dashed;
+    text-underline-offset:3px;
+  }
+  .why-toggle:hover{color:var(--rust);}
+  .why-toggle .chev{
+    display:inline-block;
+    transition:transform 0.15s ease;
+    font-size:9px;
+  }
+  .why-toggle.open .chev{transform:rotate(90deg);}
+  .why-panel{
+    display:none;
+    margin-top:10px;
+    padding:12px 14px;
+    background:#f3ecd8;
+    border:1px dashed var(--paper-line);
+    border-radius:6px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    line-height:1.6;
+    color:var(--ink-soft);
+  }
+  .why-panel.open{display:block;}
+  .why-panel .rule-line{
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    padding:3px 0;
+  }
+  .why-panel .rule-line span:first-child{color:#8a7847;}
+  .why-panel .rule-line span:last-child{color:var(--ink);font-weight:600;text-align:right;}
+
+  .benefits-list{
+    list-style:none;
+    margin:0;
+    padding:0;
+  }
+  .benefits-list li{
+    display:flex;
+    gap:10px;
+    padding:12px 0;
+    border-bottom:1px solid #f0e6cc;
+    align-items:flex-start;
+  }
+  .benefits-list li:last-child{border-bottom:none;}
+  .benefit-dot{
+    flex-shrink:0;
+    width:8px;height:8px;
+    border-radius:50%;
+    background:var(--sage);
+    margin-top:6px;
+  }
+  .benefit-name{font-weight:600;font-size:14.5px;margin:0 0 2px;}
+  .benefit-desc{font-size:13px;color:var(--ink-soft);margin:0;line-height:1.45;}
+
+  .disclaimer{
+    padding:14px 20px;
+    background:var(--sage-bg);
+    font-size:12px;
+    line-height:1.5;
+    color:#3c4f3e;
+  }
+
+  .loading{
+    display:none;
+    align-items:center;
+    gap:10px;
+    padding:16px 0 0;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+  .dot-pulse{
+    width:8px;height:8px;border-radius:50%;
+    background:var(--gold-deep);
+    animation:pulse 1s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:0.3;} 50%{opacity:1;}
+  }
+
+  footer{
+    text-align:center;
+    padding:20px 20px 0;
+    font-size:11.5px;
+    color:#8a96a3;
+    font-family:'IBM Plex Mono',monospace;
+  }
+
+  /* Second screen: registration action */
+  .next-step{
+    padding:18px 20px 20px;
+  }
+  .start-reg-btn{
+    width:100%;
+    padding:14px;
+    font-family:'IBM Plex Sans',sans-serif;
+    font-weight:600;
+    font-size:14.5px;
+    background:var(--sage);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    transition:background 0.15s ease;
+  }
+  .start-reg-btn:hover{background:#4a6a4c;}
+
+  .reg-summary{
+    display:none;
+    margin-top:14px;
+    border:1.5px dashed var(--sage);
+    border-radius:8px;
+    padding:16px;
+    background:#f3f7f2;
+    animation:slideIn 0.3s ease forwards;
+  }
+  .reg-summary.open{display:block;}
+  @keyframes slideIn{
+    from{opacity:0; transform:translateY(-6px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+  .reg-summary h3{
+    font-family:'Fraunces',serif;
+    font-size:15px;
+    margin:0 0 10px;
+    color:#3c4f3e;
+  }
+  .reg-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    padding:6px 0;
+    border-bottom:1px solid #dde6dc;
+  }
+  .reg-row:last-of-type{border-bottom:none;}
+  .reg-row span:first-child{color:#5c7a5e;font-family:'IBM Plex Mono',monospace;font-size:11.5px;}
+  .reg-row span:last-child{font-weight:600;color:var(--ink);}
+  .reg-note{
+    margin:12px 0 0;
+    font-size:11.5px;
+    color:#5c7a5e;
+    line-height:1.5;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <p class="eyebrow">PS-12 · Craft-n-Code 2026</p>
+    <h1>Tax-Simplicity Advisor</h1>
+    <p>Describe your business in your own words. We'll tell you what applies to you — plainly, and what it unlocks.</p>
+  </div>
+</header>
+
+<main>
+  <div class="wrap">
+    <label class="field-label" for="desc">Tell us about your business</label>
+    <textarea id="desc" placeholder="e.g. I sell vegetables from a cart in Jaipur, I make about ₹15,000 a month, it's just me."></textarea>
+
+    <div class="examples">
+      <button class="example-chip" data-ex="I run a small tailoring shop from home in Jaipur. I stitch clothes for neighbours, no employees, I earn around ₹60,000 a month.">🧵 Home tailor</button>
+      <button class="example-chip" data-ex="I sell vegetables from a handcart near the market in Jaipur. My sales are about ₹15,000 a month, just me.">🥬 Vegetable cart</button>
+      <button class="example-chip" data-ex="I run a small welding and metal fabrication workshop with 2 workers. We make around ₹45 lakh a year.">🔧 Welding workshop</button>
+    </div>
+
+    <div class="ai-status-row">
+      <span class="ai-status"><span class="ai-status-dot" id="aiStatusDot"></span><span id="aiStatusText">Checking AI availability…</span></span>
+      <button class="settings-toggle" id="settingsToggle">AI settings</button>
+    </div>
+
+    <div class="api-key-panel" id="apiKeyPanel">
+      <p>Live AI parsing runs on Google's free Gemini API — paste a free key below to handle any description, not just the presets. Get one (no credit card needed) at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>. It's kept only in this tab's memory, never stored or sent anywhere except directly to Google's API.</p>
+      <div class="api-key-row">
+        <input type="password" id="apiKeyInput" placeholder="AIza..." autocomplete="off">
+        <button class="save-key-btn" id="saveKeyBtn">Save</button>
+      </div>
+      <p class="key-saved-note" id="keySavedNote">✓ Key saved for this session — AI parsing is now live.</p>
+    </div>
+
+    <button class="analyze-btn" id="analyzeBtn">Analyze my business</button>
+    <div class="loading" id="loading"><span class="dot-pulse"></span> Reading your description…</div>
+    <div class="error-box" id="errorBox"></div>
+
+    <div id="results">
+      <div class="passbook">
+        <div class="passbook-head">
+          <div>
+            <h2 id="resBusinessType">—</h2>
+            <div class="sub" id="resMeta">—</div>
+          </div>
+          <div class="stamp" id="resStamp">VERIFIED<br>ESTIMATE</div>
+        </div>
+
+        <div class="entry">
+          <p class="entry-label">Registration category</p>
+          <p class="entry-value" id="resBracket">—</p>
+          <p class="entry-note" id="resBracketNote">—</p>
+        </div>
+
+        <div class="entry">
+          <p class="entry-label">Estimated annual dues</p>
+          <p class="entry-value" id="resDues">—</p>
+          <p class="entry-note" id="resDuesNote">—</p>
+          <button class="why-toggle" id="whyToggle"><span class="chev">▸</span> Why this number?</button>
+          <div class="why-panel" id="whyPanel"></div>
+        </div>
+
+        <div class="entry">
+          <p class="entry-label">You could unlock</p>
+          <ul class="benefits-list" id="resBenefits"></ul>
+        </div>
+
+        <div class="next-step">
+          <button class="start-reg-btn" id="startRegBtn">Start Udyam Registration →</button>
+          <div class="reg-summary" id="regSummary">
+            <h3>Udyam Registration — pre-filled summary</h3>
+            <div class="reg-row"><span>ENTERPRISE TYPE</span><span id="regType">—</span></div>
+            <div class="reg-row"><span>ANNUAL TURNOVER</span><span id="regTurnover">—</span></div>
+            <div class="reg-row"><span>EMPLOYEES</span><span id="regEmployees">—</span></div>
+            <div class="reg-row"><span>CLASSIFICATION</span><span id="regClass">—</span></div>
+            <p class="reg-note">This is a preview of what we'd carry into your Udyam application — you wouldn't retype anything. Actual submission connects to the government Udyam portal (not wired up in this demo).</p>
+          </div>
+        </div>
+
+        <div class="disclaimer">
+          These are simplified, indicative estimates based on general Indian tax rules and may not reflect your exact state, category, or recent rate changes. Confirm with a local CA or Udyam/GST helpdesk before registering.
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>Built for Craft-n-Code 2026 · Open Innovation · PS-12</footer>
+
+<script>
+const RULES = {
+  // annual income thresholds in INR
+  gstThreshold: 4000000,       // ₹40L goods (general category states)
+  gstThresholdServices: 2000000, // ₹20L services
+  presumptive44ADLimit: 20000000, // ₹2Cr turnover, Sec 44AD presumptive scheme
+  msme: {
+    micro: 10000000,  // investment < ₹1Cr (approx proxy via turnover for demo)
+    small: 100000000  // turnover < ₹5Cr band, simplified for demo
+  }
+};
+
+function computeTax(presumptiveIncome) {
+  // Simplified marginal slabs (indicative, not exact current rates)
+  const slabs = [
+    { upto: 300000, rate: 0 },
+    { upto: 600000, rate: 0.05 },
+    { upto: 900000, rate: 0.10 },
+    { upto: 1200000, rate: 0.15 },
+    { upto: 1500000, rate: 0.20 },
+    { upto: Infinity, rate: 0.30 }
+  ];
+  let tax = 0, prev = 0;
+  for (const s of slabs) {
+    if (presumptiveIncome > s.upto) {
+      tax += (s.upto - prev) * s.rate;
+    } else {
+      tax += (presumptiveIncome - prev) * s.rate;
+      break;
+    }
+    prev = s.upto;
+  }
+  return Math.max(0, Math.round(tax));
+}
+
+function classify(facts) {
+  const annual = Number(facts.annualTurnoverINR) || 0;
+  const employees = Math.max(0, Number(facts.employees) || 0);
+  const businessType = facts.businessType || "";
+
+  const isService =
+    /service|tailor|repair|salon|consult|freelance|software|agency|design|professional/i.test(businessType);
+
+  const gstLimit = isService ? RULES.gstThresholdServices : RULES.gstThreshold;
+  const gstRequired = annual >= gstLimit;
+  const presumptiveRate = isService ? 0.5 : 0.08;
+
+  let bracket, bracketNote, dues, duesNote, ruleCitations, classification;
+
+  if (annual < 250000) {
+    bracket = "Below taxable income";
+    bracketNote = "Your estimated annual turnover is below the basic exemption limit. No income tax is likely due, and GST registration is not required at this scale.";
+    dues = "₹0";
+    duesNote = "No income tax liability estimated at this income level.";
+    classification = "Micro (informal-scale)";
+    ruleCitations = [
+      { label: "Basic exemption limit", value: "₹2,50,000/yr" },
+      { label: "Estimated turnover", value: "₹" + annual.toLocaleString("en-IN") },
+      { label: "Rule applied", value: "No filing threshold met" }
+    ];
+  } else if (!gstRequired) {
+    bracket = "Presumptive Taxation (Sec 44AD/44ADA)";
+    bracketNote = `Below the ${isService ? "service" : "goods"} GST registration threshold (₹${(gstLimit/100000).toFixed(0)}L/yr), so GST registration is optional. You can still declare income simply under presumptive taxation without full bookkeeping.`;
+    const presumptiveIncome = Math.round(annual * presumptiveRate);
+    const tax = computeTax(presumptiveIncome);
+    dues = tax > 0 ? "≈ ₹" + tax.toLocaleString("en-IN") : "₹0";
+    duesNote = tax > 0
+      ? "Estimated using marginal slab rates on your presumptive income (8% of turnover for goods, 50% for services)."
+      : "Your presumptive income falls within the basic exemption slab, so no income tax is estimated — though registration still unlocks the benefits below.";
+    classification = "Micro Enterprise";
+    ruleCitations = [
+      { label: "GST threshold (" + (isService ? "services" : "goods") + ")", value: "₹" + (gstLimit/100000).toFixed(0) + "L/yr" },
+      { label: "Estimated turnover", value: "₹" + annual.toLocaleString("en-IN") },
+      { label: "Presumptive income rate", value: (presumptiveRate*100) + "% of turnover" },
+      { label: "Presumptive income", value: "₹" + presumptiveIncome.toLocaleString("en-IN") },
+      { label: "Marginal slabs applied", value: "0% to ₹3L, then 5–30%" }
+    ];
+  } else if (annual <= RULES.presumptive44ADLimit) {
+    bracket = "GST Registered + Presumptive Taxation";
+    bracketNote = `Your turnover crosses the ₹${(gstLimit/100000).toFixed(0)}L GST threshold for your category, so GST registration is required. You likely still qualify for presumptive taxation under Sec 44AD since turnover is under ₹2Cr.`;
+    const presumptiveIncome = Math.round(annual * presumptiveRate);
+    const incomeTax = computeTax(presumptiveIncome);
+    const estGstOutflow = Math.round(annual * 0.01);
+    const totalDues = incomeTax + estGstOutflow;
+    dues = "≈ ₹" + totalDues.toLocaleString("en-IN");
+    duesNote = "Combines estimated income tax on presumptive income (marginal slabs) with a rough net GST cash outflow after input credits.";
+    classification = "Small Enterprise";
+    ruleCitations = [
+      { label: "GST threshold (" + (isService ? "services" : "goods") + ")", value: "₹" + (gstLimit/100000).toFixed(0) + "L/yr" },
+      { label: "Estimated turnover", value: "₹" + annual.toLocaleString("en-IN") },
+      { label: "Presumptive income", value: "₹" + presumptiveIncome.toLocaleString("en-IN") },
+      { label: "Income tax (slabs)", value: "₹" + incomeTax.toLocaleString("en-IN") },
+      { label: "Est. net GST outflow", value: "₹" + estGstOutflow.toLocaleString("en-IN") + " (~1% of turnover)" }
+    ];
+  } else {
+    bracket = "Regular GST + Full Tax Filing";
+    bracketNote = "At this turnover you're above the presumptive taxation ceiling. Regular books of accounts, GST filing, and standard income tax slabs apply.";
+    dues = "Consult a CA";
+    duesNote = "Turnover this size needs a proper accountant — estimates here would be too rough to be useful.";
+    classification = "Medium Enterprise";
+    ruleCitations = [
+      { label: "44AD ceiling", value: "₹2,00,00,000/yr" },
+      { label: "Estimated turnover", value: "₹" + annual.toLocaleString("en-IN") },
+      { label: "Rule applied", value: "Exceeds presumptive scheme" }
+    ];
+  }
+
+  const benefits = [];
+  benefits.push({
+    name: "Udyam Registration",
+    desc: "Free MSME registration — unlocks priority sector lending, collateral-free loans, and delayed-payment protection from buyers."
+  });
+
+  if (annual <= 500000) {
+    benefits.push({
+      name: "MUDRA Loan — Shishu/Kishor",
+      desc: "Collateral-free loans up to ₹5L for very small or growing businesses, via any bank or NBFC-MFI."
+    });
+  } else {
+    benefits.push({
+      name: "MUDRA Loan — Tarun",
+      desc: "Collateral-free loans up to ₹10L for established small businesses looking to expand."
+    });
+  }
+
+  if (employees > 0) {
+    benefits.push({
+      name: "PMEGP Subsidy",
+      desc: "Capital subsidy (15–35%) for setting up or expanding a small manufacturing or service unit that creates employment."
+    });
+  }
+
+  benefits.push({
+    name: "PM SVANidhi / State Vendor Schemes",
+    desc: "If you're a street/cart vendor, small working-capital loans are available with no collateral, repayable in easy instalments."
+  });
+
+  return { bracket, bracketNote, dues, duesNote, benefits, ruleCitations, classification };
+}
+
+/*
+  Parsing strategy: tries the live Anthropic API first (works when viewed
+  inside Claude's artifact preview). Falls back to a local regex parser
+  below if that call fails — e.g. when opened as a standalone file with
+  no API key attached.
+*/
+function parseCurrencyNumber(value) {
+  if (!value) return 0;
+  const cleaned = String(value).replace(/,/g, "").trim().toLowerCase();
+  const match = cleaned.match(/([\d.]+)\s*(lakh|lac|crore|cr|k)?/i);
+  if (!match) return 0;
+
+  let number = Number(match[1]);
+  const unit = (match[2] || "").toLowerCase();
+
+  if (unit === "lakh" || unit === "lac") number *= 100000;
+  else if (unit === "crore" || unit === "cr") number *= 10000000;
+  else if (unit === "k") number *= 1000;
+
+  return Math.round(number);
+}
+
+function localParseDescription(text) {
+  const lower = text.toLowerCase();
+
+  // Monthly turnover/income/sales.
+  const monthlyMatch = text.match(
+    /(?:₹|rs\.?|inr)?\s*([\d,]+(?:\.\d+)?)\s*(lakh|lac|crore|cr|k)?\s*(?:per\s+month|a\s+month|monthly|\/\s*month|month)/i
+  );
+
+  // Annual turnover/income/sales.
+  const annualMatch = text.match(
+    /(?:₹|rs\.?|inr)?\s*([\d,]+(?:\.\d+)?)\s*(lakh|lac|crore|cr|k)?\s*(?:per\s+year|a\s+year|annually|annual|yearly|\/\s*year|year)/i
+  );
+
+  let monthlyTurnoverINR = 0;
+  let annualTurnoverINR = 0;
+
+  if (monthlyMatch) {
+    monthlyTurnoverINR = parseCurrencyNumber(monthlyMatch[1] + (monthlyMatch[2] || ""));
+    annualTurnoverINR = monthlyTurnoverINR * 12;
+  } else if (annualMatch) {
+    annualTurnoverINR = parseCurrencyNumber(annualMatch[1] + (annualMatch[2] || ""));
+    monthlyTurnoverINR = Math.round(annualTurnoverINR / 12);
+  }
+
+  // Handle phrases such as "₹9 lakh a year" where the regex above
+  // may encounter punctuation/spacing variations.
+  if (!annualTurnoverINR) {
+    const broadAnnual = text.match(
+      /(?:₹|rs\.?|inr)?\s*([\d,]+(?:\.\d+)?)\s*(lakh|lac|crore|cr)\b/i
+    );
+    if (broadAnnual && /year|annual|annually|turnover|sales|income|make|earn/i.test(lower)) {
+      annualTurnoverINR = parseCurrencyNumber(broadAnnual[1] + broadAnnual[2]);
+      monthlyTurnoverINR = Math.round(annualTurnoverINR / 12);
+    }
+  }
+
+  // Employees.
+  let employees = 0;
+  const employeeMatch = text.match(
+    /(\d+)\s*(?:employees?|workers?|staff|people|persons?)/i
+  );
+  if (employeeMatch) {
+    employees = Number(employeeMatch[1]);
+  } else if (/\b(just me|only me|no employees?|alone|solo)\b/i.test(text)) {
+    employees = 0;
+  }
+
+  // Business type.
+  let businessType = "Small business";
+  const businessPatterns = [
+    [/vegetable|veggie|handcart|cart vendor|street vendor/i, "Vegetable / street vendor"],
+    [/tailor|tailoring|stitch/i, "Tailoring business"],
+    [/weld|metal fabrication|fabrication workshop/i, "Welding / fabrication workshop"],
+    [/salon|barber|beauty parlour|beauty salon/i, "Salon / beauty business"],
+    [/repair|repair shop/i, "Repair business"],
+    [/restaurant|cafe|food stall|food business/i, "Food business"],
+    [/shop|retail|store/i, "Retail business"],
+    [/software|app development|web development|developer/i, "Software / development business"],
+    [/freelance|consult/i, "Freelance / consulting business"]
+  ];
+
+  for (const [pattern, name] of businessPatterns) {
+    if (pattern.test(text)) {
+      businessType = name;
+      break;
+    }
+  }
+
+  // Location.
+  let location = "India";
+  const locationMatch = text.match(/\b(?:in|near|at|from)\s+([A-Za-z][A-Za-z .'-]{2,40})/i);
+  if (locationMatch) {
+    const candidate = locationMatch[1]
+      .split(/[,.]/)[0]
+      .replace(/\b(?:i|my|the)\b/gi, "")
+      .trim();
+
+    if (candidate && candidate.length <= 35) location = candidate;
+  }
+
+  if (!monthlyTurnoverINR && !annualTurnoverINR) {
+    throw new Error("No turnover found");
+  }
+
+  return {
+    businessType,
+    location,
+    monthlyTurnoverINR,
+    annualTurnoverINR,
+    employees
+  };
+}
+
+let userApiKey = null;
+
+async function parseWithGemini(text, apiKey) {
+  const resp = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey
+      },
+      body: JSON.stringify({
+        system_instruction: {
+          parts: [{ text: "You extract structured facts from a plain-language description of a small Indian business. Respond ONLY with raw JSON, no markdown fences, no preamble. Schema: {\"businessType\": string, \"location\": string, \"monthlyTurnoverINR\": number, \"annualTurnoverINR\": number, \"employees\": number}. If monthly turnover is given, compute annual as monthly*12. If only annual is given, compute monthly as annual/12. If employees isn't mentioned, use 0. Make reasonable assumptions if some info is vague, but keep numbers realistic." }]
+        },
+        contents: [{ role: "user", parts: [{ text }] }]
+      })
+    }
+  );
+
+  if (!resp.ok) {
+    const errBody = await resp.text().catch(() => "");
+    throw new Error(`Gemini request failed (${resp.status}): ${errBody.slice(0, 200)}`);
+  }
+
+  const data = await resp.json();
+  const textOut = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!textOut) throw new Error("No response from Gemini");
+  const cleaned = textOut.replace(/```json|```/g, "").trim();
+  const facts = JSON.parse(cleaned);
+  return {
+    businessType: String(facts.businessType || "Small business"),
+    location: String(facts.location || "India"),
+    monthlyTurnoverINR: Number(facts.monthlyTurnoverINR || 0),
+    annualTurnoverINR: Number(facts.annualTurnoverINR || 0),
+    employees: Math.max(0, Number(facts.employees || 0))
+  };
+}
+
+async function parseDescription(text) {
+  // Gemini's free API tier always needs a key attached to the request —
+  // unlike Anthropic's endpoint, there's no automatic no-key bridge here,
+  // in or outside Claude's preview. No key means straight to offline parsing.
+  if (!userApiKey) {
+    return localParseDescription(text);
+  }
+  try {
+    return await parseWithGemini(text, userApiKey);
+  } catch (err) {
+    console.warn("Gemini parsing with saved key failed.", err);
+    // "Failed to fetch" means the request never got a response at all —
+    // almost always a blocked domain (ad blocker/firewall) or no
+    // connectivity, not a problem with the key itself.
+    const isNetworkFailure = err instanceof TypeError && /failed to fetch/i.test(err.message);
+    const message = isNetworkFailure
+      ? "Couldn't reach Google's API at all — check for an ad blocker/extension blocking generativelanguage.googleapis.com, or a restrictive network, then try again. Falling back to offline parsing for now."
+      : `Your saved key didn't work (${err.message.slice(0, 120)}) — check it's correct and hasn't hit its daily limit, or clear it to use offline parsing.`;
+    if (isNetworkFailure) {
+      // Network/CORS-level failures aren't a key problem — don't block
+      // the demo, just fall back silently to offline parsing but still
+      // surface what happened.
+      errorEl.textContent = message;
+      errorEl.style.display = 'block';
+      return localParseDescription(text);
+    }
+    throw new AIKeyError(message);
+  }
+}
+
+class AIKeyError extends Error {}
+
+const btn = document.getElementById('analyzeBtn');
+const descEl = document.getElementById('desc');
+const loadingEl = document.getElementById('loading');
+const errorEl = document.getElementById('errorBox');
+const resultsEl = document.getElementById('results');
+const whyToggle = document.getElementById('whyToggle');
+const whyPanel = document.getElementById('whyPanel');
+const startRegBtn = document.getElementById('startRegBtn');
+const regSummary = document.getElementById('regSummary');
+
+document.querySelectorAll('.example-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    descEl.value = chip.dataset.ex;
+    descEl.focus();
+    runAnalysis(chip.dataset.ex);
+  });
+});
+
+whyToggle.addEventListener('click', () => {
+  const isOpen = whyPanel.classList.toggle('open');
+  whyToggle.classList.toggle('open', isOpen);
+});
+
+startRegBtn.addEventListener('click', () => {
+  regSummary.classList.toggle('open');
+});
+
+async function runAnalysis(overrideText) {
+  const text = (overrideText || descEl.value).trim();
+  errorEl.style.display = 'none';
+  resultsEl.style.display = 'none';
+  regSummary.classList.remove('open');
+  whyPanel.classList.remove('open');
+  whyToggle.classList.remove('open');
+
+  if (!text) {
+    errorEl.textContent = "Please describe your business first.";
+    errorEl.style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  loadingEl.style.display = 'flex';
+
+  try {
+    const facts = await parseDescription(text);
+    const result = classify(facts);
+
+    document.getElementById('resBusinessType').textContent = facts.businessType || "Your business";
+    document.getElementById('resMeta').textContent =
+      `${facts.location || 'India'} · ~₹${Number(facts.monthlyTurnoverINR || 0).toLocaleString('en-IN')}/mo · ${facts.employees || 0} employee(s)`;
+    document.getElementById('resBracket').textContent = result.bracket;
+    document.getElementById('resBracketNote').textContent = result.bracketNote;
+    document.getElementById('resDues').textContent = result.dues;
+    document.getElementById('resDuesNote').textContent = result.duesNote;
+
+    whyPanel.replaceChildren();
+    result.ruleCitations.forEach(r => {
+      const row = document.createElement('div');
+      row.className = 'rule-line';
+
+      const label = document.createElement('span');
+      label.textContent = r.label;
+
+      const value = document.createElement('span');
+      value.textContent = r.value;
+
+      row.append(label, value);
+      whyPanel.appendChild(row);
+    });
+
+    document.getElementById('regType').textContent = facts.businessType || "—";
+    document.getElementById('regTurnover').textContent = "₹" + Number(facts.annualTurnoverINR || 0).toLocaleString('en-IN');
+    document.getElementById('regEmployees').textContent = facts.employees || 0;
+    document.getElementById('regClass').textContent = result.classification;
+
+    const benefitsEl = document.getElementById('resBenefits');
+    benefitsEl.innerHTML = '';
+    result.benefits.forEach(b => {
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="benefit-dot"></span><div><p class="benefit-name">${b.name}</p><p class="benefit-desc">${b.desc}</p></div>`;
+      benefitsEl.appendChild(li);
+    });
+
+    // restart stamp animation
+    const stamp = document.getElementById('resStamp');
+    stamp.style.animation = 'none';
+    void stamp.offsetWidth;
+    stamp.style.animation = null;
+
+    resultsEl.style.display = 'block';
+    resultsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  } catch (err) {
+    console.error(err);
+    errorEl.textContent = (err instanceof AIKeyError)
+      ? err.message
+      : "Couldn't detect a monthly or yearly turnover amount. Try something like: ₹15,000 a month, or ₹9 lakh a year.";
+    errorEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    loadingEl.style.display = 'none';
+  }
+}
+
+btn.addEventListener('click', () => runAnalysis());
+
+// --- AI settings panel ---
+const settingsToggle = document.getElementById('settingsToggle');
+const apiKeyPanel = document.getElementById('apiKeyPanel');
+const apiKeyInput = document.getElementById('apiKeyInput');
+const saveKeyBtn = document.getElementById('saveKeyBtn');
+const keySavedNote = document.getElementById('keySavedNote');
+const aiStatusDot = document.getElementById('aiStatusDot');
+const aiStatusText = document.getElementById('aiStatusText');
+
+settingsToggle.addEventListener('click', () => {
+  apiKeyPanel.classList.toggle('open');
+});
+
+saveKeyBtn.addEventListener('click', () => {
+  const key = apiKeyInput.value.trim();
+  if (!key) return;
+  userApiKey = key;
+  keySavedNote.classList.add('show');
+  aiStatusDot.className = 'ai-status-dot live';
+  aiStatusText.textContent = 'AI ready (your Gemini key)';
+});
+
+function updateAiStatus() {
+  // Gemini's free API always needs a key attached to the request — there's
+  // no automatic bridge here (unlike Anthropic's endpoint inside Claude's
+  // own preview). No key means offline regex parsing until one is added.
+  if (userApiKey) {
+    aiStatusDot.className = 'ai-status-dot live';
+    aiStatusText.textContent = 'AI ready (your Gemini key)';
+  } else {
+    aiStatusDot.className = 'ai-status-dot offline';
+    aiStatusText.textContent = 'Offline parsing — add a free Gemini key for live AI';
+  }
+}
+
+// Auto-run one worked example on load so the page never opens blank
+window.addEventListener('DOMContentLoaded', () => {
+  updateAiStatus();
+  const defaultExample = "I sell vegetables from a handcart near the market in Jaipur. My sales are about ₹15,000 a month, just me.";
+  descEl.value = defaultExample;
+  runAnalysis(defaultExample);
+});
+</script>
+
+</body>
+</html>
